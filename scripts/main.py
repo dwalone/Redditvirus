@@ -1,17 +1,11 @@
-'''
-
-make jupyter notebooks for data analysis
-
-wrtite sql queries and put in same folder as database
-
-'''
-
 from itertools import count
 import sqlite3
 import random
 import numpy as np
+import os.path
 
-conn = sqlite3.connect('virus.db')
+db_name = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'sql', 'virus.db'))
+conn = sqlite3.connect(db_name)
 c = conn.cursor()
 
 USERS = {}

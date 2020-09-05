@@ -3,6 +3,7 @@ from psaw import PushshiftAPI
 import datetime as dt
 import keys
 import sqlite3
+import os.path
 
 reddit = praw.Reddit(client_id = keys.client_id,
                      client_secret = keys.client_secret,
@@ -10,7 +11,8 @@ reddit = praw.Reddit(client_id = keys.client_id,
                      username = keys.username,
                      password = keys.password)
 
-conn = sqlite3.connect('virus.db')
+db_name = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'sql', 'virus.db'))
+conn = sqlite3.connect(db_name)
 c = conn.cursor()
 
 #c.execute('''CREATE TABLE interactions (author text, parent text, created_utc int, link_id text)''')
