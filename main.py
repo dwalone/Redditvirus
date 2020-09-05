@@ -18,16 +18,6 @@ https://ourworldindata.org/mortality-risk-covid#case-fatality-rate-of-covid-19-b
 55-64 years: 8.84% (male 324,134,030/female 339,551,038)
 65 years and over: 9.06%
 
-bump up and slightly normalise mortality rates
-
-make copy of database, push original to github
-
-push scraper and main
-
-check IGNORE_USERS
-
-run main.py
-
 make jupyter notebooks for data analysis
 
 wrtite sql queries and put in same folder as database
@@ -42,20 +32,28 @@ import numpy as np
 conn = sqlite3.connect('virus.db')
 c = conn.cursor()
 
-users = {}
+USERS = {}
 
 RECOVERY_TIME_MU = 604800
 RECOVERY_TIME_SD = 211680
 DEATH_TIME_MU = 460334
 DEATH_TIME_SD = 207150
 
-AGE_MORTALITY_ELEMENTS = [["0-14", 0.01], ["15-24", 0.02], ["25-54", 0.05], ["55-64", 0.1], ["65+",0.2]]
-AGE_PROBABILITES = [0.2529, 0.1577, 0.4103, 0.0884, 0.0906]
+AGE_ELEMENTS = ["0-14", "15-24", "25-54", "55-64", "65+"]
+AGE_PROBABILITES = [0.2529, 0.1577, 0.4103, 0.0884, 0.0907] #65+ bumped from 0.0906 -> 0.0907 so probabilities sum to 1
 
-IGNORE_USERS = ['AutoModerator', 'None', '[None']
+AGE_MORTALITY = {
+                 "0-14" : 0.01,
+                 "15-24" : 0.02,
+                 "25-54" : 0.05,
+                 "55-64" : 0.1,
+                 "65+" : 0.2
+                 }
+
+IGNORE_USERS = ['AutoModerator', 'None']
 
 
-class User:
+class user:
     
     _ids = count(1)
     
@@ -66,16 +64,28 @@ class User:
         
         self.infector = infector
         self.infected_utc = infected_utc
-        
-        age_mortality = np.random.choice(elements, p=probabilities)
-        self.age = age_mortality[0]
-        if random.random() > age_mortality[1]:
+
+        self.age = np.random.choice(AGE_ELEMENTS, p=AGE_PROBABILITES)
+        if random.random() > AGE_MORTALITY[self.age]:
             self.uninfected_utc = int(max(34560, random.gauss(604800, 211680))) + infected_utc
             self.outcome = 'I'
         else:
             self.uninfected_utc = int(max(34560, random.gauss(460334, 207150))) + infected_utc
             self.outcome = 'D'
-        
+            
+
+def initialinf():
+    
+    c.execute('''
+              SELECT * FROM interactions
+              ORDER BY created_utc ASC
+              LIMIT 1
+              ''')
+              
+    row = c.fetchone()
+              
+    USERS[row[0]] = user(row[0], row[0], row[2])
+    
     
         
 infcount = []
@@ -83,14 +93,18 @@ utc = []
 
 def main():
     
+    count = 0
+    
+    initialinf()
+    
     c.execute('''SELECT * FROM interactions
-                 ORDER BY created_utc DESC''')
+                 ORDER BY created_utc ASC''')
                  
     for row in c:
         
         interaction_utc = row[2]
         
-        infcount.append(sum(1 for i in users.values() if i.uninfected_utc > interaction_utc))
+        infcount.append(sum(1 for i in USERS.values() if i.uninfected_utc > interaction_utc))
         utc.append(interaction_utc)
         
         parentname = row[1]
@@ -98,24 +112,29 @@ def main():
         
         if parentname not in IGNORE_USERS and authorname not in IGNORE_USERS:
                 
-            parent = users.get(parentname, None)
-            author = users.get(authorname, None)
+            parent = USERS.get(parentname, None)
+            author = USERS.get(authorname, None)
             
             if parent is None and author is not None:
                 
                 if author.uninfected_utc > interaction_utc:
-                    users[parentname] = User(parentname, authorname, interaction_utc)
+                    USERS[parentname] = user(parentname, authorname, interaction_utc)
                     
             elif parent is not None and author is None:
             
                 if parent.uninfected_utc > interaction_utc:
-                    users[authorname] = User(authorname, parentname, interaction_utc) 
+                    USERS[authorname] = user(authorname, parentname, interaction_utc) 
+        count += 1
+        
+        if count % 10000 == 0:
+            print(count)
                     
-    c.execute('''CREATE TABLE infections (id int, name text, infector int, infected_utc int, uninfected int, age text, outcome text)''')
-    conn.commit()
-    conn.close()
+    #c.execute('''CREATE TABLE infections (id int, name text, infector int, infected_utc int, uninfected int, age text, outcome text)''')
+    #conn.commit()
+    #conn.close()
         
         
 
 if __name__ == "__main__":
+    main()
     
