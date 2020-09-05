@@ -1,0 +1,78 @@
+def do(something):
+    return 0
+
+from itertools import count
+import sqlite3
+import keys
+import praw
+
+conn = sqlite3.connect('virus.db')
+c = conn.cursor()
+
+#c.execute('''CREATE TABLE users (id int, name text, infector text, infected_utc int, recovery_utc int, death_utc int, isInfected int, viralLoad int)''')
+             
+reddit = praw.Reddit(client_id = keys.client_id,
+                     client_secret = keys.client_secret,
+                     user_agent = keys.user_agent,
+                     username = keys.username,
+                     password = keys.password)
+
+users = {}
+
+_ids = count(1)
+
+RECOVERY_TIME = 10000
+
+
+
+
+def Transmission():
+    return 0
+
+def User(name, infector, infected_utc):  
+    id = next(_ids)    
+    tabledata = (id, name, infector, infected_utc, 'NULL', 'NULL', 1, 0)    
+    c.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?)", tabledata)
+    
+           
+def RecoverOrDie(utc):
+    c.execute('''
+              UPDATE users 
+              SET isInfected = 0
+              WHERE ? - infected_utc > ?
+              ''', (utc, RECOVERY_TIME))
+                 
+                 
+c.execute('''
+          WITH t AS (
+              SELECT name, isInfected FROM users
+              WHERE (name = ? OR name = ?)
+              AND isInfected = 1
+              )
+          
+          ''', (parent, author))
+          
+result = c.fetchall()
+if result[0][1] == 1 and result[1][1] == 0:
+    User(result[1][1], result[0][1], )    
+
+        
+
+def main():
+    parent = users.get(parentname, None)
+    author = users.get(authorname, None)
+    
+    if parent is None and author is not None:
+        
+        if author.isInfected == True:
+            users[parentname] = User(parentname, 0, 0)
+            
+    elif parent is not None and author is None:
+    
+        if parent.isInfected == True:
+            users[authorname] = User(authorname, 0, 0) 
+        
+        
+
+if __name__ == "__main__":
+    
