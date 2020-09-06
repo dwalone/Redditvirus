@@ -36,9 +36,9 @@ ax.xaxis.set_major_formatter(xfmt)
 
 
 
-line, = ax.plot(dates, y, color='#e57502')
-linei, = ax2.plot(dates, y, color='#328c47')
-lined, = ax2.plot(dates, y, color='#922d2d')
+line, = ax.plot(dates, y, color='#e57502', label='currently infected')
+linei, = ax2.plot(dates, y, color='#328c47', label='recoveries')
+lined, = ax2.plot(dates, y, color='#922d2d', label='deaths')
 
 ax.set_xlabel('Date', fontsize=8)
 ax.set_ylabel('Count', fontsize=8)
@@ -58,6 +58,10 @@ ax.tick_params(axis='x', colors='#c4c7c8')
 ax.yaxis.label.set_color('#e57502')
 ax.tick_params(axis='y', colors='#c4c7c8')
 ax.yaxis.grid(color = '#272f3e')
+legend = ax.legend(loc="upper left")
+frame = legend.get_frame()
+frame.set_facecolor('#1b2531')
+plt.setp(legend.get_texts(), color='#c4c7c8')
 
 ax2.set_xlabel('Date', fontsize=8)
 ax2.set_ylabel('Count', fontsize=8)
@@ -77,6 +81,10 @@ ax2.tick_params(axis='x', colors='#c4c7c8')
 ax2.yaxis.label.set_color('#e57502')
 ax2.tick_params(axis='y', colors='#c4c7c8')
 ax2.yaxis.grid(color = '#272f3e')
+legend2 = ax2.legend(loc="upper left")
+frame2 = legend2.get_frame()
+frame2.set_facecolor('#1b2531')
+plt.setp(legend2.get_texts(), color='#c4c7c8')
 
 immune = []
 dead = []
