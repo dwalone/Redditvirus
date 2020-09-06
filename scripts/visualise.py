@@ -100,7 +100,19 @@ for n in range(len(y)):
     
     if len(val2) == 0:
         val2 = [['None', 'None']]
-        
+    
+    c.execute('''
+              SELECT AVG(cnt) FROM (
+                  SELECT COUNT(*) AS cnt FROM infections
+                  WHERE infected_utc < ?
+                  GROUP BY infector
+        )''', (int(max(xstrip)),))
+    
+    val2.append(["",""])
+    try:
+        val2.append([r'$R_{0}$ ~', round(c.fetchall()[0][0], 2)])
+    except:
+        val2.append([r'$R_{0}$ ~', "None"])
     ax1.set_axis_off() 
     table = ax1.table( 
         
@@ -110,21 +122,28 @@ for n in range(len(y)):
         cellLoc ='center', 
         cellColours = [['#1b2531']*2]*len(val2),
         edges = 'open',
-        loc = 'center')
+        loc = 'upper center')
+    
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1, 1.6) 
     
     for i in range(len(val2)+1):
         for j in range(2):
             if i == 0:
-                table[(i, j)].get_text().set_color('#e57502')    
+                table[(i, j)].get_text().set_color('#e57502')  
+            elif i == len(val2):
+                table[(i, j)].get_text().set_color('#fbe4d5')
+                table[(i, j)].get_text().set_fontsize(14)
+                
             else:
                 if j==0:
                     table[(i, j)].get_text().set_color('#ecac7f')
                 if j==1:
                     table[(i, j)].get_text().set_color('#e3f4f8')
                 
-    table.auto_set_font_size(False)
-    table.set_fontsize(12)
-    table.scale(1, 1.6)   
+ 
+    ax1.set_title("Who directly infected the most users?", color = '#fbe4d5')
     
     utc.append(dt.datetime.fromtimestamp(max(xstrip)))
 
