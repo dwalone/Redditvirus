@@ -25,7 +25,11 @@ fig.patch.set_facecolor('#1b2531')
 xfmt = md.DateFormatter('%Y-%m-%d')
 ax.xaxis.set_major_formatter(xfmt)
 
+
+
 line, = ax.plot(dates, y, color='#e57502')
+linei, = ax.plot(dates, y, color='#328c47')
+lined, = ax.plot(dates, y, color='#922d2d')
 ax.set_xlabel('Date')
 ax.set_ylabel('Count')
 plt.setp(ax.get_xticklabels(), rotation=25)
@@ -42,9 +46,10 @@ ax.tick_params(axis='x', colors='#c4c7c8')
 ax.yaxis.label.set_color('#e57502')
 ax.tick_params(axis='y', colors='#c4c7c8')
 ax.yaxis.grid(color = '#272f3e')
-line.set_data(dates, y)
 
-
+immune = []
+dead = []
+utc = []
 for n in range(len(y)):
     xstrip = x[:n+1]
     line.set_data(dates[:n+1], y[:n+1])
@@ -87,7 +92,20 @@ for n in range(len(y)):
                     table[(i, j)].get_text().set_color('#e3f4f8')
                 
     table.set_fontsize(13)
-    table.scale(0.6,1.5)       
+    table.scale(0.6,1.5)   
+    
+    utc.append(max(xstrip))
+
+    c.execute('''SELECT count(*) from infections where uninfected<? and outcome = "I"''', (int(max(xstrip)),))
+      
+    immune.append(c.fetchall()[0])
+    
+    c.execute('''SELECT count(*) from infections where uninfected<? and outcome = "D"''', (int(max(xstrip)),))        
+    
+    dead.append(c.fetchall()[0])
+    
+    linei.set_data([dt.datetime.fromtimestamp(ts) for ts in utc], immune)
+    lined.set_data([dt.datetime.fromtimestamp(ts) for ts in utc], dead)
     
     fig.tight_layout()
     fig.canvas.draw()
