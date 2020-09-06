@@ -14,8 +14,8 @@ c = conn.cursor()
 c.execute("SELECT * from infected_count")
 data = c.fetchall()
 
-x = np.array([float(i[0]) for i in data])[0::100000]
-y = np.array([i[1] for i in data])[0::100000]
+x = np.array([float(i[0]) for i in data])[0::1000]
+y = np.array([i[1] for i in data])[0::1000]
 
 dates=[dt.datetime.fromtimestamp(ts) for ts in x]
 
@@ -67,7 +67,7 @@ ax2.set_xlabel('Date', fontsize=8)
 ax2.set_ylabel('Count', fontsize=8)
 plt.setp(ax2.get_xticklabels(), rotation=25)
 ax2.set_xticks(np.arange(dates[0], max(dates), dt.timedelta(days=5)))
-ax2.set_yticks(np.arange(0, 200000, 40000))
+ax2.set_yticks(np.arange(0, 200000, 20000))
 ax2.tick_params(axis="x", labelsize=6)
 ax2.tick_params(axis="y", labelsize=6)
 ax2.axis(xmin = dates[0], ymin = y[0]-1)
@@ -92,6 +92,7 @@ utc = []
 for n in range(len(y)):
     xstrip = x[:n+1]
     line.set_data(dates[:n+1], y[:n+1])
+    m = max(xstrip)
     
     c.execute('''
           SELECT infector, COUNT(*) AS cnt FROM infections 
@@ -99,7 +100,7 @@ for n in range(len(y)):
           GROUP BY infector 
           ORDER BY cnt DESC 
           LIMIT 10
-          ''', (int(max(xstrip)),))
+          ''', (int(m),))
           
     tem = c.fetchall()
     
@@ -114,7 +115,7 @@ for n in range(len(y)):
                   SELECT COUNT(*) AS cnt FROM infections
                   WHERE infected_utc < ?
                   GROUP BY infector
-        )''', (int(max(xstrip)),))
+        )''', (int(m),))
     
     val2.append(["",""])
     try:
@@ -153,18 +154,20 @@ for n in range(len(y)):
  
     ax1.set_title("Who directly infected the most users?", color = '#fbe4d5')
     
-    utc.append(dt.datetime.fromtimestamp(max(xstrip)))
+    utc.append(dt.datetime.fromtimestamp(m))
 
-    c.execute('''SELECT count(*) from infections where uninfected<? and outcome = "I"''', (int(max(xstrip)),))
+    c.execute('''SELECT count(*) from infections where uninfected<? and outcome = "I"''', (int(m),))
       
     immune.append(c.fetchall()[0][0])
     
-    c.execute('''SELECT count(*) from infections where uninfected<? and outcome = "D"''', (int(max(xstrip)),))        
+    c.execute('''SELECT count(*) from infections where uninfected<? and outcome = "D"''', (int(m),))        
     
     dead.append(c.fetchall()[0][0])
     
     linei.set_data(utc, immune)
     lined.set_data(utc, dead)
+    ax2.fill_between(utc, 0, immune, color='#265733')
+    ax2.fill_between(utc, 0, dead, color='#562727')
     
     fig.tight_layout()
     fig.canvas.draw()
@@ -173,10 +176,10 @@ for n in range(len(y)):
     if n % 10 == 0:
         print(n)
 
-  
+conn.close()  
 (
     ffmpeg
-    .input('/home/rutt/Documents/redditvirus/scripts/pics/*.png', pattern_type='glob', framerate=25)
+    .input('pics/*.png', pattern_type='glob', framerate=25)
     .output('movie.mp4')
     .run()
 )
