@@ -6,6 +6,7 @@ import numpy as np
 import datetime as dt
 import time
 import ffmpeg
+import matplotlib.gridspec as gridspec
 
 db_name = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'sql', 'virus.db'))
 conn = sqlite3.connect(db_name)
@@ -13,12 +14,19 @@ c = conn.cursor()
 c.execute("SELECT * from infected_count")
 data = c.fetchall()
 
-x = np.array([float(i[0]) for i in data])[0::10000]
-y = np.array([i[1] for i in data])[0::10000]
+x = np.array([float(i[0]) for i in data])[0::100000]
+y = np.array([i[1] for i in data])[0::100000]
 
 dates=[dt.datetime.fromtimestamp(ts) for ts in x]
 
-fig, (ax, ax1) = plt.subplots(2)
+
+fig = plt.figure(constrained_layout=False)
+gs = fig.add_gridspec(2, 5)
+ax1 = fig.add_subplot(gs[1, :2])
+ax2 = fig.add_subplot(gs[1, 2:])
+ax = fig.add_subplot(gs[0, :])
+
+#fig, (ax, ax1) = plt.subplots(2)
 fig.set_figheight(10)
 fig.set_figwidth(10)
 fig.patch.set_facecolor('#1b2531')
@@ -27,14 +35,18 @@ ax.xaxis.set_major_formatter(xfmt)
 
 
 
+
 line, = ax.plot(dates, y, color='#e57502')
-linei, = ax.plot(dates, y, color='#328c47')
-lined, = ax.plot(dates, y, color='#922d2d')
-ax.set_xlabel('Date')
-ax.set_ylabel('Count')
+linei, = ax2.plot(dates, y, color='#328c47')
+lined, = ax2.plot(dates, y, color='#922d2d')
+
+ax.set_xlabel('Date', fontsize=8)
+ax.set_ylabel('Count', fontsize=8)
 plt.setp(ax.get_xticklabels(), rotation=25)
 ax.set_xticks(np.arange(dates[0], max(dates), dt.timedelta(days=5)))
-ax.set_yticks(np.arange(y[0]-1, 70000, 10000))
+ax.set_yticks(np.arange(0, 70000, 10000))
+ax.tick_params(axis="x", labelsize=6)
+ax.tick_params(axis="y", labelsize=6)
 ax.axis(xmin = dates[0], ymin = y[0]-1)
 ax.set_facecolor('#1b2531')
 ax.spines['right'].set_visible(False)
@@ -46,6 +58,25 @@ ax.tick_params(axis='x', colors='#c4c7c8')
 ax.yaxis.label.set_color('#e57502')
 ax.tick_params(axis='y', colors='#c4c7c8')
 ax.yaxis.grid(color = '#272f3e')
+
+ax2.set_xlabel('Date', fontsize=8)
+ax2.set_ylabel('Count', fontsize=8)
+plt.setp(ax2.get_xticklabels(), rotation=25)
+ax2.set_xticks(np.arange(dates[0], max(dates), dt.timedelta(days=5)))
+ax2.set_yticks(np.arange(0, 200000, 40000))
+ax2.tick_params(axis="x", labelsize=6)
+ax2.tick_params(axis="y", labelsize=6)
+ax2.axis(xmin = dates[0], ymin = y[0]-1)
+ax2.set_facecolor('#1b2531')
+ax2.spines['right'].set_visible(False)
+ax2.spines['top'].set_visible(False)
+ax2.spines['bottom'].set_color('#3f424f')
+ax2.spines['left'].set_color('#3f424f')
+ax2.xaxis.label.set_color('#e57502')
+ax2.tick_params(axis='x', colors='#c4c7c8')
+ax2.yaxis.label.set_color('#e57502')
+ax2.tick_params(axis='y', colors='#c4c7c8')
+ax2.yaxis.grid(color = '#272f3e')
 
 immune = []
 dead = []
@@ -59,7 +90,7 @@ for n in range(len(y)):
           WHERE infected_utc < ?
           GROUP BY infector 
           ORDER BY cnt DESC 
-          LIMIT 8
+          LIMIT 10
           ''', (int(max(xstrip)),))
           
     tem = c.fetchall()
@@ -79,7 +110,7 @@ for n in range(len(y)):
         cellLoc ='center', 
         cellColours = [['#1b2531']*2]*len(val2),
         edges = 'open',
-        loc ='upper center') 
+        loc = 'center')
     
     for i in range(len(val2)+1):
         for j in range(2):
@@ -91,34 +122,35 @@ for n in range(len(y)):
                 if j==1:
                     table[(i, j)].get_text().set_color('#e3f4f8')
                 
-    table.set_fontsize(13)
-    table.scale(0.6,1.5)   
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1, 1.6)   
     
-    utc.append(max(xstrip))
+    utc.append(dt.datetime.fromtimestamp(max(xstrip)))
 
     c.execute('''SELECT count(*) from infections where uninfected<? and outcome = "I"''', (int(max(xstrip)),))
       
-    immune.append(c.fetchall()[0])
+    immune.append(c.fetchall()[0][0])
     
     c.execute('''SELECT count(*) from infections where uninfected<? and outcome = "D"''', (int(max(xstrip)),))        
     
-    dead.append(c.fetchall()[0])
+    dead.append(c.fetchall()[0][0])
     
-    linei.set_data([dt.datetime.fromtimestamp(ts) for ts in utc], immune)
-    lined.set_data([dt.datetime.fromtimestamp(ts) for ts in utc], dead)
+    linei.set_data(utc, immune)
+    lined.set_data(utc, dead)
     
     fig.tight_layout()
     fig.canvas.draw()
     fig.savefig('pics/Frame%05d.png' %n)
     ax1.cla()
-    if n % 100 == 0:
+    if n % 10 == 0:
         print(n)
 
-'''        
+  
 (
     ffmpeg
     .input('/home/rutt/Documents/redditvirus/scripts/pics/*.png', pattern_type='glob', framerate=25)
     .output('movie.mp4')
     .run()
 )
-'''    
+
