@@ -4,7 +4,7 @@ Simulating a pandemic on r/Coronavirus, based on comment thread proximity
 
 Over 2.8 million comments scraped between 1 March 2020 -> 1 April 2020
 
-# Simulation rules
+### Simulation rules
 
 If a user X replies to a post/comment made by an infected user Y, user X is now infected.
 
@@ -14,7 +14,7 @@ An infected user will remain infectious for a certain period, then either recove
 
 Patient Zero assigned to the author of the first submission scraped.
 
-# Pandemic attributes
+### Pandemic attributes
 
 Infectious Period per user pulled randomly from scaled normal distributions contingent on whether they recover or die, based on this study:
 
@@ -28,9 +28,19 @@ Mortality/Recovery probability depending on age based on normalised mean data gi
 
 https://ourworldindata.org/mortality-risk-covid#case-fatality-rate-of-covid-19-by-age
 
-# Data
+### Data
 
 `virus.db` has 3 tables: `interactions`, `infections`, `infected_count`
+
+Input you Reddit API credentials in `keys.py`, then change epoch times and run `scraper.py` to pull your own data
+
+Change viral attributes and run `main.py` to simulate your own pandemic
+
+Edit and use `visualise.py` to visualise your results
+
+### Requirements
+
+`Python 3.x`, `praw 7.x`, `sqlite 3.x`, `psaw 0.x`, `matplotlib 3.x`, `ffmpeg-python 0.x` 
 
 
 
