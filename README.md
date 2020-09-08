@@ -4,7 +4,7 @@ Simulating a pandemic on r/Coronavirus, based on comment thread proximity
 
 Over 2.8 million comments scraped between 1 March 2020 -> 1 April 2020
 
-![graph](graph.mp4)
+![final](https://raw.github.com/dwalone/Redditvirus/master/final.png)
 
 ### Simulation rules
 
