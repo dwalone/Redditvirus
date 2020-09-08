@@ -6,6 +6,8 @@ Over 2.8 million comments scraped between 1 March 2020 -> 1 April 2020
 
 ![final](https://raw.github.com/dwalone/Redditvirus/master/final.png)
 
+See `graph.mp4` for the full animation
+
 ### Simulation rules
 
 If a user X replies to a post/comment made by an infected user Y, user X is now infected.
