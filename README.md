@@ -4,6 +4,8 @@ Simulating a pandemic on r/Coronavirus, based on comment thread proximity
 
 Over 2.8 million comments scraped between 1 March 2020 -> 1 April 2020
 
+![graph](graph.mp4)
+
 ### Simulation rules
 
 If a user X replies to a post/comment made by an infected user Y, user X is now infected.
